@@ -1,9 +1,12 @@
 import javax.swing.*;
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 
 public class ServerWindow extends JFrame {
     /*private static final int POS_X = 500;
@@ -16,11 +19,12 @@ public class ServerWindow extends JFrame {
     protected final JTextArea log = new JTextArea();
     private boolean isSerwerWorking;
     public void PrintLog(String text) throws IOException {
-        byte[] textInByte = text.getBytes();
-        try(FileOutputStream fileLog = new FileOutputStream("log.txt")){
-            fileLog.write(textInByte);
+        Date date = new Date();
+        String logText = date.toString() + ":\n" + text;
+        try(FileWriter fileLog = new FileWriter("log.txt",true)){
+            fileLog.write(logText);
         }
-        log.append(text);
+        log.append(logText);
     }
     public ServerWindow()
     {
