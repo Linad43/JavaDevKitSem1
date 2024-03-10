@@ -1,33 +1,64 @@
 import javax.swing.*;
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 public class ServerWindow extends JFrame {
     /*private static final int POS_X = 500;
     private static final int POS_Y = 200;*/
-    private static final int WIDTH = 400;
-    private static final int HEIGHT = 500;
+    private static final int WIDTH = 400; //ширина
+    private static final int HEIGHT = 500; //высота
+    //кнопки
     private final JButton btnStart = new JButton("Старт");
     private final JButton btnStop = new JButton("Стоп");
     private final JButton btnClear = new JButton("Очистить лог");
-    protected final JTextArea log = new JTextArea();
-    private boolean isSerwerWorking;
-    public void PrintLog(String text) throws IOException {
+    //окно логирования
+    protected static final JTextArea log = new JTextArea();
+
+    /**
+     * Флаг добавления клиента
+     * @param client - класс окна клиента
+     * @return - true/false добавлен не добавлен клиент
+     */
+    public boolean connectUser(Client client){
+        if (!isSerwerWorking){
+            return false;
+        }
+        clients.add(client);
+        return true;
+    }
+    //Флаг работы сервера
+    public static boolean isSerwerWorking;
+    //Список подключенных клиентов
+    public static ArrayList<Client> clients = new ArrayList<>();
+
+    /**
+     * Печать логирования, вывод на лог каждого клиента,
+     * печать в файл
+     * @param text - текст логирования
+     * @throws IOException - ошибка при печати в файл
+     */
+    public static void PrintLog(String text) throws IOException {
         Date date = new Date();
-        String logText = date.toString() + ":\n" + text;
-        try(FileWriter fileLog = new FileWriter("log.txt",true)){
+        String logText = date + ":\n" + text + "\n";
+        try (FileWriter fileLog = new FileWriter("log.txt", true)) {
             fileLog.write(logText);
         }
         log.append(logText);
+        for (Client client:clients) {
+            client.log.append(logText);
+        }
     }
+
     public ServerWindow()
     {
+        clients.clear();
         isSerwerWorking = false;
         btnStop.addActionListener(new ActionListener() {
             @Override
@@ -35,9 +66,13 @@ public class ServerWindow extends JFrame {
                 if (isSerwerWorking)
                 {
                     isSerwerWorking = false;
+                    for (Client client:clients) {
+                        client.setConnected(false);
+                    }
                     //System.out.println("Сервер остановлен (" + isSerwerWorking + ")");
                     try {
                         PrintLog("Сервер остановлен (" + isSerwerWorking + ")\n");
+                        clients.clear();
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -84,6 +119,8 @@ public class ServerWindow extends JFrame {
                 log.removeAll();
             }
         });
+
+
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(WIDTH,HEIGHT);
         setResizable(false);
